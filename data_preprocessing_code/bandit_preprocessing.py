@@ -40,12 +40,12 @@ def create_feature_matrix(df,n_summary,n_indi,feature_names):
         #calculate summary statistics
         
         #left and right ports
-        feature_matrix[j,0] = np.sum(past_trials['Port Poked'] == 'Left')
-        feature_matrix[j,1] = np.sum(past_trials['Port Poked'] == 'Right')
+        feature_matrix[j,0] = np.sum(past_trials['Port Poked'].values == 'Left')
+        feature_matrix[j,1] = np.sum(past_trials['Port Poked'].values == 'Right')
         
         #left and right rewardsd
-        feature_matrix[j,2] = np.sum(past_trials.loc[past_trials['Port Poked']== 'Left','Reward Given'])
-        feature_matrix[j,3] = np.sum(past_trials.loc[past_trials['Port Poked']== 'Right','Reward Given'])
+        feature_matrix[j,2] = np.sum(past_trials.loc[past_trials['Port Poked'].values == 'Left','Reward Given'])
+        feature_matrix[j,3] = np.sum(past_trials.loc[past_trials['Port Poked'].values == 'Right','Reward Given'])
         
         #streak
         '''
