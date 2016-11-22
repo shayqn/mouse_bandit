@@ -40,12 +40,12 @@ def create_feature_matrix(df,n_summary,n_indi,feature_names):
         #calculate summary statistics
         
         #left and right ports
-        feature_matrix[j,0] = np.sum(past_trials['Port Poked'].values == 'Left')
-        feature_matrix[j,1] = np.sum(past_trials['Port Poked'].values == 'Right')
+        feature_matrix[j,0] = np.sum(past_trials['Port Poked'].values == 2)
+        feature_matrix[j,1] = np.sum(past_trials['Port Poked'].values == 1)
         
-        #left and right rewardsd
-        feature_matrix[j,2] = np.sum(past_trials.loc[past_trials['Port Poked'].values == 'Left','Reward Given'])
-        feature_matrix[j,3] = np.sum(past_trials.loc[past_trials['Port Poked'].values == 'Right','Reward Given'])
+        #left and right rewards
+        feature_matrix[j,2] = np.sum(past_trials.loc[past_trials['Port Poked'].values == 2,'Reward Given'])
+        feature_matrix[j,3] = np.sum(past_trials.loc[past_trials['Port Poked'].values == 1,'Reward Given'])
         
         #streak
         '''
@@ -78,9 +78,9 @@ def create_feature_matrix(df,n_summary,n_indi,feature_names):
             past_trial = past_trials.iloc[-itrial,:]
             
             #which port
-            if past_trial['Port Poked'] == 'Right':
+            if past_trial['Port Poked'] == 1:
                 feature_matrix[j,5+k] = 0
-            elif past_trial['Port Poked'] == 'Left':
+            elif past_trial['Port Poked'] == 2:
                 feature_matrix[j,5+k] = 1
             else:
                 print('Error port not Left or Right')
@@ -109,9 +109,9 @@ def create_feature_matrix(df,n_summary,n_indi,feature_names):
         '''
         DECISION
         '''
-        if current_trial['Port Poked'] == 'Right':
+        if current_trial['Port Poked'] == 1:
             feature_matrix[j,5+k] = 0
-        elif current_trial['Port Poked'] == 'Left':
+        elif current_trial['Port Poked'] == 2:
             feature_matrix[j,5+k] = 1
         else:
             print('Error decision port not Left or Right')
