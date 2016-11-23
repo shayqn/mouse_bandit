@@ -99,8 +99,8 @@ def score_both_and_confuse(y_predict,y_test,disp=True,confusion=True):
     if disp is True:
         print(confusion_table)
         print('\nF1: %.03f' % F1)
-        print('\nAccuracy on healthy patients: %.02f' % acc_neg)
-        print('Accuracy on flu patients: %.02f\n' % acc_pos)
+        print('\nAccuracy on class 0: %.02f' % acc_neg)
+        print('Accuracy on class 1: %.02f\n' % acc_pos)
     
     
     if confusion is True:
