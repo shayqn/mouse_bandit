@@ -1,5 +1,5 @@
 # Mouse Bandit
-*Class project for Data Science 1 (ac209a) @ Harvard Fall 2016
+*Class project for Data Science 1 (ac209a) @ Harvard Fall 2016*
 
 # Summary
 This is an ongoing attempt to model the behavior of a mouse as it performs a version of the two-armed bandit task. 
