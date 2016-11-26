@@ -1,7 +1,26 @@
-# ac209a_project
-Class project for ac209a
+# Mouse Bandit
+*Class project for Data Science 1 (ac209a) @ Harvard Fall 2016*
 
-The goal of our model is to predict the future decision of the mouse, i.e., left port or right port poke, on a given trial, based on previously observed events and trials.
+# Summary
+This is an ongoing attempt to model the behavior of a mouse as it performs a version of the two-armed bandit task. 
+
+
+# Background
+This behavioral task is inspired from the 'multi-armed bandit problem', a scenario first formalized in probability theory to illustrate the concept of balancing the attempt to acquire new information about the world with the desire to optimize your actions based on existing knowledge. 
+
+For example, you are at a restaurant, staring at the menu. How do you decide what to get? Do you pick your favorite dish – one you know will bring satisfaction? Or do you decide to take a risk and try something new? After all, maybe you will discover your new favorite food! 
+
+Whether or not you try that new dish may not be so important, but the general ability to strategize when ‘taking a chance’ is better than trusting your previous experiences – that is absolutely critical to successfully navigating life. This decision process is known as the ‘explore vs exploit’ problem. In the 1950s, (some) mathematicians became obsessed with trying to find the objectively optimal strategy – how often should you explore? When should you exploit? Is there an exact solution? To a large extent, the field of mathematics and machine learning have converged on several theorems that promise to optimize this decision process in a wide variety of settings. In fact, computer scientists often use these theorems to instruct artificial intelligence algorithms how to learn and behave in various complex situations. 
+
+The most popular formalization of the explore-exploit problem is the multi-armed bandit task, where a gambler in front of a row of slot machines (often aptly referred to as 'one-armed bandits') must decide which machines to play, and in what order, in an effort to maximize earnings over a set period of time. 
+
+We and others have adapted this task for mice, where a mouse must choose to poke a 'left' or 'right' port for a water reward. The two ports have different probabilites of paying out water, and these probabilities change unpredictably over time. Therefore, based on the current outcomes of its actions, the mouse must flexibly decide how to bias its behavior to maximize the amount of water earned. 
+
+
+# The Model
+We are currently trying a few different models. First, we are trying to predict when the mouse 'switches' - that is, when the mouse chooses a different port than its immediate preceeding choice. Due to the structure of the behavior, where the reward probabilities are switched ~4-6 times per behavior session, a mouse switches its behavior only ~10% of the time. 
+
+Currently, we are exploring using logistic regression, linear discriminant analysis, and decision trees to model when the mouse switches its decision.
 
 ### Description of features:
 
