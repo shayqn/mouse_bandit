@@ -30,9 +30,12 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
     '''
     n_trials = trials.shape[0] #number of trials in this session
     
-    num_cols = 4*n_indi + 2 + 1 + 1 + 2 #2 streak cols, 1 block trial col, 4 cols for each past trial, 1 for current trial + 2 decision/switch!
+    num_cols = 2 + 1+ 4*n_indi+ 1 + 3
+    #2 streak cols, 1 block trial col, 4 cols for each past trial, 1 for current trial + 3 decision/switch/higher p port!
     feature_matrix = np.zeros((n_trials-n_indi,num_cols))
-    block_starts = np.diff(trials['Right Reward Prob'].values) != 0
+    
+    block_starts = np.zeros(trials.shape[0])
+    block_starts[1:] = np.diff(trials['Right Reward Prob'].values) != 0
                            
     for j,i in enumerate(np.arange(n_indi,n_trials)):
         
@@ -50,6 +53,11 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
         # will be added after (since its a string)
         
         '''
+        Block Number
+        '''
+        # will be added after all at once (since can be calculated for every trial with single line)
+        
+        '''
         Block Trial Number
         '''
         if (j == 0): #first block number will be the sum
@@ -59,7 +67,7 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
             else:
                 feature_matrix[j,0] = n_indi - np.where(block_starts[:n_indi]==True) + 1
                 # i.e. 10 - 5 + 1 = 6 or 10 - 8 + 1 = 3. it works. 
-        elif block_starts[j]: #if block_starts[j] == True, start counting from 0
+        elif block_starts[i]: #if block_starts[j] == True, start counting from 0
             feature_matrix[j,0] = 0 
         else:
             feature_matrix[j,0] = feature_matrix[j-1,0] + 1
@@ -156,8 +164,21 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
         SWITCH
         '''
         feature_matrix[j,k] = np.abs((current_trial['Port Poked'] - trials.iloc[i-1]['Port Poked']))
-    
-    
+        
+        k+= 1
+        
+        '''
+        p(high) port
+        '''
+        
+        if ((current_trial['Right Reward Prob'] > current_trial['Left Reward Prob']) & (current_trial['Port Poked'] == 1)):
+            feature_matrix[j,k] = 1
+        elif ((current_trial['Right Reward Prob'] < current_trial['Left Reward Prob']) & (current_trial['Port Poked'] == 2)):
+            feature_matrix[j,k] = 1
+        else:
+            feature_matrix[j,k] = 0
+        
+        
     d = {'Mouse ID':mouse_id,'Session ID':session_id}
     feature_trials = pd.DataFrame(data=d,index=range(feature_matrix.shape[0]))
     
@@ -178,7 +199,8 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
                         '1_Port','1_Reward','1_ITI','1_trialDuration',
                         '0_ITI',
                         'Decision',
-                        'Switch'
+                        'Switch',
+                        'Higher p port',
                          ]
     
     feature_trials = pd.concat([feature_trials,pd.DataFrame(data=feature_matrix,index=None,columns=feature_names)],axis=1)
