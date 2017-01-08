@@ -30,8 +30,9 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
     '''
     n_trials = trials.shape[0] #number of trials in this session
     
-    num_cols = 2 + 1+ 4*n_indi+ 1 + 3
-    #2 streak cols, 1 block trial col, 4 cols for each past trial, 1 for current trial + 3 decision/switch/higher p port!
+    num_cols = 2 + 1+ 4*n_indi+ 1 + 4
+    #2 streak cols, 1 block trial col, 4 cols for each past trial, 
+    #]1 for current trial + 4 decision/switch/higher p port/Reward
     feature_matrix = np.zeros((n_trials-n_indi,num_cols))
     
     block_starts = np.zeros(trials.shape[0])
@@ -104,6 +105,7 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
             streakR_len = 10
             if np.sum(past_trials['Reward Given'].values > 0):
                 streakR_sign = 1
+
             else:
                 streakR_sign = -1
         #otherwise, streak is less then 10 trials and things are simpler.
@@ -178,6 +180,15 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
         else:
             feature_matrix[j,k] = 0
         
+        k+=1
+        
+        '''
+        REWARD
+        '''
+        
+        feature_matrix[j,k] = current_trial['Reward Given']
+        
+        
         
     d = {'Mouse ID':mouse_id,'Session ID':session_id}
     feature_trials = pd.DataFrame(data=d,index=range(feature_matrix.shape[0]))
@@ -201,6 +212,7 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
                         'Decision',
                         'Switch',
                         'Higher p port',
+                        'Reward'
                          ]
     
     feature_trials = pd.concat([feature_trials,pd.DataFrame(data=feature_matrix,index=None,columns=feature_names)],axis=1)
