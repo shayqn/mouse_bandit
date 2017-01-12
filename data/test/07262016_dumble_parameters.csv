@@ -1,0 +1,2 @@
+centerPokeTrigger,centerPokeRewardWindow,ledDuringRewardWindow,leftRewardProb,rightRewardProb,rewardDurationRight,rewardDurationLeft,minInterTrialInterval,blockRangeMin,blockRangeMax
+1,2,1,0.2,0.8,40,45,1,50,50
