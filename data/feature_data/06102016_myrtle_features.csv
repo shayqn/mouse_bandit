@@ -1,0 +1,6 @@
+,Mouse ID,Session ID,Block Trial,Port Streak,Reward Streak,Decision,Switch,Higher p port,Reward
+0,myrtle,06102016_myrtle,0.0,0.0,0.0,0.0,1.0,0.0,1.0
+1,myrtle,06102016_myrtle,1.0,1.0,1.0,1.0,1.0,0.0,0.0
+2,myrtle,06102016_myrtle,2.0,1.0,-1.0,1.0,0.0,0.0,0.0
+3,myrtle,06102016_myrtle,3.0,2.0,-2.0,1.0,0.0,0.0,0.0
+4,myrtle,06102016_myrtle,4.0,3.0,-3.0,1.0,0.0,0.0,0.0

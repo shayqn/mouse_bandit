@@ -1,0 +1,9 @@
+,Mouse ID,Session ID,Block Trial,Port Streak,Reward Streak,Decision,Switch,Higher p port,Reward
+0,harry,06082016_harry,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+1,harry,06082016_harry,1.0,1.0,-1.0,1.0,1.0,1.0,1.0
+2,harry,06082016_harry,2.0,1.0,1.0,0.0,1.0,0.0,0.0
+3,harry,06082016_harry,3.0,1.0,-1.0,0.0,0.0,0.0,0.0
+4,harry,06082016_harry,4.0,2.0,-2.0,0.0,0.0,0.0,0.0
+5,harry,06082016_harry,5.0,3.0,-3.0,0.0,0.0,0.0,0.0
+6,harry,06082016_harry,6.0,4.0,-4.0,0.0,0.0,0.0,0.0
+7,harry,06082016_harry,7.0,5.0,-5.0,1.0,1.0,1.0,1.0
