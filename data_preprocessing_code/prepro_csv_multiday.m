@@ -3,7 +3,7 @@
 mouse_name = input('Mouse Name: ','s');
 root_dir = uigetdir;
 file_names = dir(root_dir);
-num_files = size(root_dir,1);
+num_files = size(file_names,1);
 
 
 for i = 1:num_files
