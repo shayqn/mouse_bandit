@@ -161,6 +161,7 @@ def add_session(root_dir,record_df):
                 raise ValueError('In a hidden folder')
                     
         
+        # calculate p(high port)
         high_p_port = np.zeros(trials.shape[0])
         
         for row in trials.iterrows():
@@ -171,18 +172,27 @@ def add_session(root_dir,record_df):
                 high_p_port[i] = 1
             elif ((current_trial['Right Reward Prob'] < current_trial['Left Reward Prob']) & (current_trial['Port Poked'] == 2)):
                 high_p_port[i] = 1
-                
+       
+        # determine what stage in training we are in        
         if params['centerPokeTrigger'].values == 0:
             phase = 0
         elif (params['leftRewardProb'].values == params['rightRewardProb'].values):
             phase = 1
         else:
             phase = 2
+           
+        # convert date to datetime object
+        date = session_id[:8]
+        date_str =  np.str(date)
+        if (len(date_str) == 7):
+            date_str = '0' + date_str
+        datetime = pd.to_datetime(date_str,format='%m%d%Y')
             
+        # create a dictionary with all information
         record = {
             'Session ID': session_id,
             'Mouse ID': session_id[9:],
-            'Date': session_id[:8],
+            'Date': datetime,
             'Phase': phase,
             'Left Reward Prob': params['leftRewardProb'].values,
             'Right Reward Prob': params['rightRewardProb'].values,
@@ -197,7 +207,8 @@ def add_session(root_dir,record_df):
             'Left Solenoid Duration': params['rewardDurationLeft'],
             'Right Solenoid Duration': params['rewardDurationRight']  
                  }
-                 
+        
+        #create DataFrame         
         output_df = output_df.append(pd.DataFrame(data=record,columns=names),ignore_index=True)
     
     except:
