@@ -19,7 +19,7 @@ for i = 1:num_files
         try
             prepro_csv(mouse_name,date,cd);
         catch ME
-            warning(strcat('Error on Mouse: ',file_name))
+            warning(strcat('Error on Mouse: ',))
             disp(ME)
         end
     end
