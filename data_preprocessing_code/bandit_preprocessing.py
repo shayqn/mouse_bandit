@@ -219,7 +219,7 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
     
     return feature_trials
     
-def create_reduced_feature_matrix(trials,mouse_id,session_id,feature_names='Default'):
+def create_reduced_feature_matrix(trials,mouse_id,session_id,feature_names='Default',curr_trial_duration=False):
     '''
     This function creates the feature matrix we will use!
     
@@ -238,7 +238,10 @@ def create_reduced_feature_matrix(trials,mouse_id,session_id,feature_names='Defa
     '''
     n_trials = trials.shape[0] #number of trials in this session
     
-    num_cols = 7
+    if curr_trial_duration is True:
+        num_cols = 8
+    else:
+        num_cols = 7
     
     feature_matrix = np.zeros((n_trials,num_cols))
     
@@ -323,6 +326,10 @@ def create_reduced_feature_matrix(trials,mouse_id,session_id,feature_names='Defa
         feature_matrix[i,k] = (streakR_len+1)*streakR_sign
             
         k+=1
+        
+        if curr_trial_duration == True:
+            feature_matrix[i,k] = trials.iloc[i]['Trial Duration (s)']
+            k+=1
     
         '''
         DECISION
@@ -369,15 +376,27 @@ def create_reduced_feature_matrix(trials,mouse_id,session_id,feature_names='Defa
     feature_trials = pd.DataFrame(data=d,index=range(feature_matrix.shape[0]))
     
     if feature_names == 'Default':
-        feature_names = [
+        if curr_trial_duration is True:
+            feature_names = [
                         'Block Trial',
                         'Port Streak',
                         'Reward Streak',
+                        'Trial Duration',
                         'Decision',
                         'Switch',
                         'Higher p port',
                         'Reward'
                          ]
+        else:
+            feature_names = [
+                            'Block Trial',
+                            'Port Streak',
+                            'Reward Streak',
+                            'Decision',
+                            'Switch',
+                            'Higher p port',
+                            'Reward'
+                             ]
     
     feature_trials = pd.concat([feature_trials,pd.DataFrame(data=feature_matrix,index=None,columns=feature_names)],axis=1)
     
