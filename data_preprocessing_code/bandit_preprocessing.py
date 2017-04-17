@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 
-def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Default'):
+def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Default',curr_trial_duration=True):
     '''
     This function creates the feature matrix we will use!
     
@@ -30,16 +30,29 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
     '''
     n_trials = trials.shape[0] #number of trials in this session
     
-    num_cols = 2 + 1+ 4*n_indi+ 1 + 4
-    #2 streak cols, 1 block trial col, 4 cols for each past trial, 
+    if curr_trial_duration is True:
+        num_cols = 2 + 3+ 4*n_indi+ 1 + 4 + 1
+    else:
+        num_cols = 2 + 3+ 4*n_indi+ 1 + 4
+    #2 streak cols, 3 trial & block & reward trial col, 4 cols for each past trial, 
     #]1 for current trial + 4 decision/switch/higher p port/Reward
     feature_matrix = np.zeros((n_trials-n_indi,num_cols))
     
     block_starts = np.zeros(trials.shape[0])
     block_starts[1:] = np.diff(trials['Right Reward Prob'].values) != 0
-                           
+    
+    reward_block_num = 0    
+    reward_block_nums = np.zeros(n_trials)
+    for i in range(n_trials):
+        if block_starts[i]:
+            reward_block_num = 0
+        else:
+            reward_block_num += trials.iloc[i]['Reward Given']
+    
+        reward_block_nums[i] = reward_block_num
+
     for j,i in enumerate(np.arange(n_indi,n_trials)):
-        
+        k = 0 #column indexer for the feature matrix
         #extract the 'n_summary' trials we need to consider. Assume that n_summary > n_indi
         past_trials = trials.iloc[i-n_indi:i]
         
@@ -54,8 +67,10 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
         # will be added after (since its a string)
         
         '''
-        Block Number
+        Trial Number
         '''
+        feature_matrix[j,k] = i+1
+        k+=1 
         # will be added after all at once (since can be calculated for every trial with single line)
         
         '''
@@ -64,32 +79,43 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
         if (j == 0): #first block number will be the sum
             if (np.sum(block_starts[:n_indi]) == 0):
             #then we are still in the first block, and we simply are n_indi trials in
-                feature_matrix[j,0] = n_indi+1
+                feature_matrix[j,k] = n_indi+1
             else:
-                feature_matrix[j,0] = n_indi - np.where(block_starts[:n_indi]==True) + 1
+                feature_matrix[j,k] = n_indi - np.where(block_starts[:n_indi]==True) + 1
                 # i.e. 10 - 5 + 1 = 6 or 10 - 8 + 1 = 3. it works. 
         elif block_starts[i]: #if block_starts[j] == True, start counting from 0
-            feature_matrix[j,0] = 0 
+            feature_matrix[j,k] = 0 
         else:
-            feature_matrix[j,0] = feature_matrix[j-1,0] + 1
+            feature_matrix[j,k] = feature_matrix[j-1,k] + 1
             
+        k+=1
+        
+        '''
+        Block Reward Number
+        '''
+        feature_matrix[j,k] = reward_block_nums[i-1]
+        k+=1
+            
+        
         '''
         PORT STREAK
         
         approach: take the derivative of the 'port poked' variabe. Streak is number of [0s + 1] (from the end). 
         the valence of the streak is the sign of first non-zero entry (from the end)
         '''
-        streakP_vec = np.flipud(np.diff(past_trials['Port Poked'].values)) #reverse order of array so end is
+        streakP_vec = np.flipud(np.diff(trials['Port Poked'].values[:i])) #reverse order of array so end is
         #at the front. This makes it easier to find the first non-zero entry
         streakP_len = np.nonzero(streakP_vec)[0]
-        
-        if len(streakP_len) == 0: #have to deal with case where streak is all 10 previous trials!
-            feature_matrix[j,1] = 10
+
+        if i == 0:
+            feature_matrix[j,k] = 0 #special case on first trial
+        elif len(streakP_len) == 0: #have to deal with case where streak is all 10 previous trials!
+            feature_matrix[j,k] = i
         #otherwise, streak is less then 10 trials and things are simpler.
         else:
             streakP_len = streakP_len[0]
-            feature_matrix[j,1] = (streakP_len+1)
-        
+            feature_matrix[j,k] = streakP_len+1
+        k+=1
         
         '''
         REWARD STREAK
@@ -97,13 +123,19 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
         approach: take the derivative of the reward boolean. Streak is number of [0s + 1] (from the end). 
         the valence of the streak is the sign of first non-zero entry (from the end)
         '''
-        streakR_vec = np.flipud(np.diff(past_trials['Reward Given'].values)) #reverse order of array so end is
+        streakR_vec = np.flipud(np.diff(trials['Reward Given'].values[:i])) #reverse order of array so end is
         #at the front. This makes it easier to find the first non-zero entry
         streakR_len = np.nonzero(streakR_vec)[0]
         
-        if len(streakR_len) == 0: #have to deal with case where streak is all 10 previous trials!
-            streakR_len = 10
-            if np.sum(past_trials['Reward Given'].values > 0):
+        if i == 0:
+            streakR_len = 0 
+            streakR_sign = 0 
+            #special case on first trial, reward streak should be 0! 
+            # we can trivially set this to -1 to make that the case below. 
+            
+        elif len(streakR_len) == 0: #have to deal with case where streak is all 10 previous trials!
+            streakR_len = i-1
+            if np.sum(trials['Reward Given'].values[:i] > 0):
                 streakR_sign = 1
 
             else:
@@ -113,12 +145,20 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
             streakR_len = streakR_len[0]
             streakR_sign = streakR_vec[streakR_len]
         
-        feature_matrix[j,2] = (streakR_len+1)*streakR_sign
+        feature_matrix[j,k] = (streakR_len+1)*streakR_sign
             
+        k+=1
+        
+        '''
+        Add in current trial duration (if flag is set to true)
+        '''
+        if curr_trial_duration == True:
+            feature_matrix[j,k] = trials.iloc[i]['Trial Duration (s)']
+            k+=1
+        
         '''
         INDIVIDUAL TRIALS
         '''
-        k = 3
         for icol,itrial in enumerate(np.arange(n_indi,0,-1)):
             
             past_trial = past_trials.iloc[-itrial,:]
@@ -194,26 +234,53 @@ def create_feature_matrix(trials,n_indi,mouse_id,session_id,feature_names='Defau
     feature_trials = pd.DataFrame(data=d,index=range(feature_matrix.shape[0]))
     
     if feature_names == 'Default':
-        feature_names = [
-                        'Block Trial',
-                        'Port Streak',
-                        'Reward Streak',
-                        '10_Port','10_Reward','10_ITI','10_trialDuration',
-                        '9_Port','9_Reward','9_ITI','9_trialDuration',
-                        '8_Port','8_Reward','8_ITI','8_trialDuration',
-                        '7_Port','7_Reward','7_ITI','7_trialDuration',
-                        '6_Port','6_Reward','6_ITI','6_trialDuration',
-                        '5_Port','5_Reward','5_ITI','5_trialDuration',
-                        '4_Port','4_Reward','4_ITI','4_trialDuration',
-                        '3_Port','3_Reward','3_ITI','3_trialDuration',
-                        '2_Port','2_Reward','2_ITI','2_trialDuration',
-                        '1_Port','1_Reward','1_ITI','1_trialDuration',
-                        '0_ITI',
-                        'Decision',
-                        'Switch',
-                        'Higher p port',
-                        'Reward'
-                         ]
+        if curr_trial_duration is True:
+            feature_names = [
+                            'Trial',
+                            'Block Trial',
+                            'Block Reward',
+                            'Port Streak',
+                            'Reward Streak',
+                            '10_Port','10_Reward','10_ITI','10_trialDuration',
+                            '9_Port','9_Reward','9_ITI','9_trialDuration',
+                            '8_Port','8_Reward','8_ITI','8_trialDuration',
+                            '7_Port','7_Reward','7_ITI','7_trialDuration',
+                            '6_Port','6_Reward','6_ITI','6_trialDuration',
+                            '5_Port','5_Reward','5_ITI','5_trialDuration',
+                            '4_Port','4_Reward','4_ITI','4_trialDuration',
+                            '3_Port','3_Reward','3_ITI','3_trialDuration',
+                            '2_Port','2_Reward','2_ITI','2_trialDuration',
+                            '1_Port','1_Reward','1_ITI','1_trialDuration',
+                            '0_ITI','0_trialDuration',
+                            'Decision',
+                            'Switch',
+                            'Higher p port',
+                            'Reward'
+                             ]
+        else:
+            feature_names = [
+                            'Trial',
+                            'Block Trial',
+                            'Block Reward',
+                            'Port Streak',
+                            'Reward Streak',
+                            '10_Port','10_Reward','10_ITI','10_trialDuration',
+                            '9_Port','9_Reward','9_ITI','9_trialDuration',
+                            '8_Port','8_Reward','8_ITI','8_trialDuration',
+                            '7_Port','7_Reward','7_ITI','7_trialDuration',
+                            '6_Port','6_Reward','6_ITI','6_trialDuration',
+                            '5_Port','5_Reward','5_ITI','5_trialDuration',
+                            '4_Port','4_Reward','4_ITI','4_trialDuration',
+                            '3_Port','3_Reward','3_ITI','3_trialDuration',
+                            '2_Port','2_Reward','2_ITI','2_trialDuration',
+                            '1_Port','1_Reward','1_ITI','1_trialDuration',
+                            '0_ITI',
+                            'Decision',
+                            'Switch',
+                            'Higher p port',
+                            'Reward'
+                             ]
+            
     
     feature_trials = pd.concat([feature_trials,pd.DataFrame(data=feature_matrix,index=None,columns=feature_names)],axis=1)
     
