@@ -109,7 +109,7 @@ trials(righttrials,7) = rightrewards;
 trials(lefttrials,7) = leftrewards;
 
 if(sync == true)
-    trials(:,8) = stats.sync_frame(trialStartPokes);
-    trials(:,9) = stats.sync_frame(decisionPokes);
+    trials(:,8) = trialStartPokes;
+    
 end
     
