@@ -20,7 +20,6 @@ def detectEvents(ca_data_path):
 
     # set model traces to its own variable
     traces = neuron.C
-    neuron.Coor = neuron.centers
 
     n_neurons = traces.shape[0] #number of neurons
 
@@ -28,13 +27,10 @@ def detectEvents(ca_data_path):
     for iNeuron in range(0,n_neurons):
         if any(np.isnan(neuron.C[iNeuron,:])) == True:
             nan_neurons.append(iNeuron)
-    more_nan_neurons = np.where(np.isnan(neuron.Coor))
-    nan_neurons.extend(x for x in more_nan_neurons[0] if x not in nan_neurons)
     good_neurons = [x for x in range(0, n_neurons) if x not in nan_neurons]
 
     # remove neurons with NaNs from relevant variables
     neuron.C = neuron.C[good_neurons, :]
-    neuron.Coor = neuron.Coor[good_neurons,:]
     neuron.C_raw = neuron.C_raw[good_neurons,:]
 
     # refined count for neurons after cleansing NaNs

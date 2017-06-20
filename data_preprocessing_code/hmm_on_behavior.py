@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 import os
 
-def predictBeliefBySession(record_path, session_name, mouse_id):
+def predictBeliefBySession(record_path, session_name, mouse_id, p=0.9, duration=60,
+                           root_dir='/Users/celiaberon/GitHub/mouse_bandit/data/trial_data'):
 
     record = pd.read_csv(record_path,index_col=0)
     
@@ -18,7 +19,7 @@ def predictBeliefBySession(record_path, session_name, mouse_id):
                'Right Reward Prob','Left Reward Prob','Reward Given',
               'center_frame','decision_frame']
     
-    root_dir = '/Users/celiaberon/GitHub/mouse_bandit/data/trial_data'
+    #root_dir = '/Users/celiaberon/GitHub/mouse_bandit/data/trial_data'
     
     full_name = session_name + '_trials.csv'
     
@@ -31,8 +32,8 @@ def predictBeliefBySession(record_path, session_name, mouse_id):
     '''
     Tuned parameters
     '''
-    duration = 60 # number steps until switch reward probability
-    p = 0.8 # prob of reward if choose the correct side
+    #duration = 60 # number steps until switch reward probability
+    #p = 0.8 # prob of reward if choose the correct side
     q = 1.0-p # prob of reward if choose the incorrect side
         
     '''
@@ -114,7 +115,7 @@ def predictBeliefBySession(record_path, session_name, mouse_id):
     return master_beliefs
 
 
-def predictBeliefFeatureMat(data, n_plays):
+def predictBeliefFeatureMat(data, n_plays, p=0.9, duration=60):
     
     #data = pd.read_csv(data_path, index_col=0) 
     
@@ -135,8 +136,8 @@ def predictBeliefFeatureMat(data, n_plays):
     '''
     Tuned parameters
     '''
-    duration = 60
-    p = 0.9 # prob of reward if choose the correct side
+    #duration = 60
+    #p = 0.9 # prob of reward if choose the correct side
     q = 1.0-p # prob of reward if choose the incorrect side
     
     '''

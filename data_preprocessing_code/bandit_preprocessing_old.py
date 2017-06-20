@@ -8,7 +8,7 @@ for our AC209A project modeling the 2-armed bandit task in mice
 """
 import numpy as np
 import pandas as pd
-from sklearn import preprocessing
+from scipy import optimize
 
 def create_feature_matrix(trials,n_indi,mouse_id,session_id,
                           feature_names='Default',curr_trial_duration=True,
@@ -471,17 +471,79 @@ def create_reduced_feature_matrix(trials,mouse_id,session_id,feature_names='Defa
     
     return feature_trials
     
-def OneHotEncode(data):
+
+def extract_session_stats(data):
+    '''
+    Inputs:
+        data - (pandas dataframe) feature matrix (reduced or not)
     
-    categorical = (data.dtypes.values != np.dtype('float64'))
-    data_1hot = data.apply(encode_categorical)
-    encoder = preprocessing.OneHotEncoder(categorical_features=categorical, sparse=False)  # Last value in mask is y
-    data_encoded = encoder.fit_transform(data_1hot.values)
+    Outputs:
+        dataframe with 3 columns:
+            stable_phigh- prob/rate of choosing high p port at end of block (last 10 trials)
+            peak_pswitch- prob/rate of switching at beginning of block (first 10 trials)
+            rebias_tau-   time constant of exponential function fit to p(high p port) after block switch
+    '''
     
-    return data_encoded
     
-def encode_categorical(array):
-    if not (array.dtype == np.dtype('float64') or array.dtype == np.dtype('int64')) :
-        return preprocessing.LabelEncoder().fit_transform(array) 
-    else:
-        return array
+    #all the block numbers
+    t_block_unique = np.unique(data['Block Trial'].values)
+
+    # initialize matrix for p(switch) at every trial number in block. 2nd column for SEM
+    p_switch_block = np.zeros((t_block_unique.shape[0],2))
+
+    # initialize matrix for p(high_p_port)
+    high_p_port = np.zeros_like(p_switch_block)
+
+    '''
+    calculate p(switch) for each trial # in block (from 0 -> end)
+    '''
+    for t in t_block_unique:
+        switches = data[data['Block Trial'] == t]['Switch']
+        p_switch_block[t,0] = switches.mean(axis=0)
+        p_switch_block[t,1] = switches.std(axis=0) / np.sqrt(switches.shape[0])
+        
+        highport = data[data['Block Trial']==t]['Higher p port']
+        high_p_port[t,0] = highport.mean(axis=0)
+        high_p_port[t,1] = highport.std(axis=0) / np.sqrt(highport.shape[0])
+
+
+    '''
+    calculate p(switch) and p(high port) for trial #s in block (from -L to +L)
+    '''
+
+    data.index = np.arange(data.shape[0]) # <-- this is important
+    switch_points = data[data['Block Trial'] == 0].index.values
+
+    L = 30
+    paraswitch = np.zeros((switch_points.shape[0],L*2 + 1))
+    paraswitch_port = np.zeros_like(paraswitch)
+
+    for i,point in enumerate(switch_points):
+        try:
+            paraswitch[i,:] = data.iloc[point-L:point+L+1]['Switch']
+            paraswitch_port[i,:] = data.iloc[point-L:point+L+1]['Higher p port']
+        except:
+            pass
+
+    '''
+    calculate exponential fit for p(high port) after block switch
+    '''
+    #first define exponential function to be optimized
+    def exp_func(x,a,b,c):
+        return a*np.exp(-b*x) + c
+    
+    #fit curve
+    popt,pcov = optimize.curve_fit(exp_func,np.arange(L+1),paraswitch_port.mean(axis=0)[L:])
+    
+    #calc peak_switch, stable_phigh, and tau
+    stable_switch = paraswitch[:,L-10:L].mean()
+    peak_switch = paraswitch[:,L:L+10].mean(axis=0).max()
+    stable_phigh = paraswitch_port[:,L-10:L].mean()
+    rebias_tau = 1./popt[1]
+    
+    d = {'stable_phigh':stable_phigh,
+         'stable_pswitch':stable_switch,
+         'peak_pswitch':peak_switch,
+         'rebias_tau':rebias_tau}
+    
+    return pd.DataFrame(data=d,index=[0])
